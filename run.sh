@@ -106,7 +106,9 @@ fi
 # Get Verible sources
 
 if ! is_step_finished get_verible; then
-	git clone --depth=1 https://github.com/google/verible.git
+	#git clone --depth=1 https://github.com/google/verible.git
+	# FIXME use google/verible when the fix become merged
+	git clone --depth=1 -b mglb/fix-json-output git@github.com:antmicro/verible.git
 
 	mark_step_finished;
 fi
