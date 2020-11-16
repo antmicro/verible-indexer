@@ -17,6 +17,8 @@ OUT_DIR="$(readlink -f "./output")"
 mkdir -p $OUT_DIR
 ARTIFACTS_DIR="$(readlink -f "$OUT_DIR/artifacts")"
 mkdir -p $ARTIFACTS_DIR
+BAZEL_ROOT="$(readlink -f "$OUT_DIR/bazel_cache")"
+mkdir -p "$BAZEL_ROOT"
 
 #━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Dev helpers which allow to skip steps that already succeeded. Useful in
@@ -77,11 +79,14 @@ fi
 
 KYTHE_SRC_DIR="$(readlink -f ./kythe-src/kythe*/)"
 
+# FIXME: install bazel first (see script in Verible CI)
+BAZEL="/usr/bin/bazel --output_user_root=$BAZEL_ROOT"
+
 # Build web ui and static http_server, which are not present in binary release
 
 if ! is_step_finished build_kythe_utils; then
 	cd $KYTHE_SRC_DIR
-	bazel build \
+	$BAZEL build \
 			-c opt \
 			--@io_bazel_rules_go//go/config:static \
 			//kythe/go/serving/tools:http_server \
@@ -109,12 +114,10 @@ fi
 #─────────────────────────────────────────────────────────────────────────────
 # Build verible-verilog-kythe-extractor
 
-# FIXME: install bazel first (see script in Verible CI)
-BAZEL=/usr/bin/bazel
-
 if ! is_step_finished build_verible; then
 	cd verible
-	bazel build //verilog/tools/kythe:verible-verilog-kythe-extractor
+	$BAZEL clean
+	$BAZEL build //verilog/tools/kythe:verible-verilog-kythe-extractor
 	cd -
 
 	mark_step_finished;
@@ -137,35 +140,9 @@ fi
 if ! is_step_finished index_ibex; then
 	cd ibex
 
-	# FIXME: parse from src_files.yml
-	files=(                            \
-		rtl/ibex_pkg.sv                \
-		rtl/ibex_alu.sv                \
-		rtl/ibex_compressed_decoder.sv \
-		rtl/ibex_controller.sv         \
-		rtl/ibex_cs_registers.sv       \
-		rtl/ibex_counters.sv           \
-		rtl/ibex_decoder.sv            \
-		rtl/ibex_ex_block.sv           \
-		rtl/ibex_id_stage.sv           \
-		rtl/ibex_if_stage.sv           \
-		rtl/ibex_wb_stage.sv           \
-		rtl/ibex_load_store_unit.sv    \
-		rtl/ibex_multdiv_slow.sv       \
-		rtl/ibex_multdiv_fast.sv       \
-		rtl/ibex_prefetch_buffer.sv    \
-		rtl/ibex_fetch_fifo.sv         \
-		rtl/ibex_pmp.sv                \
-		rtl/ibex_core.sv               \
-		shared/rtl/prim_assert.sv      \
-	)
-	printf "%s\n" "${files[@]}" > ./verilog_files_list
-
-	# FIXME: parse include_dir_paths from src_files.yml
-	$VERIBLE_VERILOG_KYTHE_EXTRACTOR \
-			--file_list_path ./verilog_files_list \
-			--include_dir_paths rtl,shared/rtl \
-			> "$OUT_DIR/entries.json"
+	file_args=$($SELF_DIR/ibex_extractor_args ibex ./src_files.yml)
+	printf "--> %s\n" $VERIBLE_VERILOG_KYTHE_EXTRACTOR $args
+	$VERIBLE_VERILOG_KYTHE_EXTRACTOR --print_kythe_facts json $file_args > "$OUT_DIR/entries"
 
 	cd -
 
@@ -178,7 +155,7 @@ fi
 if ! is_step_finished make_graphstore; then
 	$KYTHE_DIR/tools/entrystream \
 			--read_format=json \
-			< "$OUT_DIR/entries.json" \
+			< "$OUT_DIR/entries" \
 		| $KYTHE_DIR/tools/write_entries \
 			-graphstore "$OUT_DIR/graphstore"
 
