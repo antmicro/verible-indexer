@@ -1,16 +1,53 @@
-name: build
+name: Build and deploy
 
 on:
+  workflow_dispatch:
   push:
     branches: [ master ]
   pull_request:
     branches: [ master ]
 
 jobs:
-  build:
-    runs-on: ubuntu-18.04
+  build-and-deploy:
+    runs-on: ubuntu-20.04
     steps:
-      - name: Build
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+
+      - name: Install dependencies
         run: |
-          ./run.sh
+          sudo apt install curl gnupg
+          curl -fsSL https://bazel.build/bazel-release.pub.gpg | gpg --dearmor > bazel.gpg
+          sudo mv bazel.gpg /etc/apt/trusted.gpg.d/
+          echo "deb [arch=amd64] https://storage.googleapis.com/bazel-apt stable jdk1.8" | sudo tee /etc/apt/sources.list.d/bazel.list
+          sudo apt update
+          sudo apt install bazel-3.4.1 asciidoc graphviz source-highlight
+
+      - name: Fetch
+        run: ./fetch.sh
+
+      - name: Build
+        run: ./build.sh
+
+      - name: Upload artifacts
+        # if: github.ref != 'refs/heads/master'
+        uses: actions/upload-artifact@v2
+        with:
+          name: server-files
+          path: _build/output/artifacts/*
+
+      - name: Setup SSH
+        if: github.ref == 'refs/heads/master'
+        run: |
+          mkdir -p ~/.ssh
+          echo "$ssh_key" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+        env:
+          ssh_key: ${{ secrets.SSH_KEY }}
+
+      - name: Deploy
+        if: github.ref == 'refs/heads/master'
+        run: ./deploy.sh
 
