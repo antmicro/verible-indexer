@@ -1,4 +1,5 @@
 #!/bin/bash
+# Copyright (c) 2020 Antmicro <https://www.antmicro.com>
 
 set -e -u -o pipefail
 shopt -s nullglob
