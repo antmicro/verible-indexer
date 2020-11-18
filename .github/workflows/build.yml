@@ -31,11 +31,16 @@ jobs:
       - name: Build
         run: ./build.sh
 
+      # Required to preserve file permissions
+      - name: Create .tar archive with artifacts
+        run: tar -cf ../server-files.tar *
+        working-directory: _build/output/artifacts
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
         with:
           name: server-files
-          path: _build/output/artifacts/*
+          path: _build/output/server-files.tar
 
   deploy:
     needs: build
@@ -47,7 +52,11 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: server-files
-          path: artifacts
+
+      - name: Extract artifacts .tar archive
+        run: |
+          mkdir artifacts
+          tar -xf server-files.tar -C artifacts
 
       - name: Setup SSH
         run: |
@@ -58,5 +67,6 @@ jobs:
           ssh_key: ${{ secrets.SSH_KEY }}
 
       - name: Deploy
-        run: rsync -avrz --delete -e "ssh -o StrictHostKeyChecking=no" artifacts/* "indexer@34.123.203.237:~/indexer"
+        run: rsync -avrz --delete -e "ssh -o StrictHostKeyChecking=no" * "indexer@34.123.203.237:~/indexer"
+        working-directory: artifacts
 
