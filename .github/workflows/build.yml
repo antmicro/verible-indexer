@@ -8,7 +8,7 @@ on:
     branches: [ master ]
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout repository
@@ -32,14 +32,24 @@ jobs:
         run: ./build.sh
 
       - name: Upload artifacts
-        # if: github.ref != 'refs/heads/master'
         uses: actions/upload-artifact@v2
         with:
           name: server-files
           path: _build/output/artifacts/*
 
+  deploy:
+    needs: build
+    if: github.ref == 'refs/heads/master'
+
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: server-files
+          path: artifacts
+
       - name: Setup SSH
-        if: github.ref == 'refs/heads/master'
         run: |
           mkdir -p ~/.ssh
           echo "$ssh_key" > ~/.ssh/id_rsa
@@ -48,6 +58,5 @@ jobs:
           ssh_key: ${{ secrets.SSH_KEY }}
 
       - name: Deploy
-        if: github.ref == 'refs/heads/master'
-        run: ./deploy.sh
+        run: rsync -avrz --delete -e "ssh -o StrictHostKeyChecking=no" artifacts/* "indexer@34.123.203.237:~/indexer"
 
