@@ -1,0 +1,15 @@
+[Unit]
+Description=Indexer web server file watcher
+After=syslog.target
+After=network.target
+StartLimitIntervalSec=10
+StartLimitBurst=1
+
+[Service]
+Type=oneshot
+TimeoutStartSec=20
+ExecStartPre=/bin/sleep 10
+ExecStart=/usr/bin/systemctl restart indexer-web-server.service
+
+[Install]
+WantedBy=multi-user.target

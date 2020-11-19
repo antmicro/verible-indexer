@@ -1,0 +1,5 @@
+[Path]
+PathModified=/home/indexer/indexer/
+
+[Install]
+WantedBy=multi-user.target
