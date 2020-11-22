@@ -46,11 +46,32 @@ VERIBLE_VERILOG_KYTHE_EXTRACTOR="$(readlink -f "./verible/bazel-bin/verilog/tool
 
 IBEX_CORE_NAME='lowrisc:ibex:ibex_core_tracing'
 
+function log_indexer_warnings() {
+	if [[ -n "${GITHUB_WORKFLOW:-}" ]]; then
+		local _lines=""
+		while read -r line; do
+			if [[ -n "$line" ]]; then
+				_lines="${_lines}%0A${line}"
+			fi
+		done
+		if [[ -n "$_lines" ]]; then
+			printf '::warning file=%s,line=%d::verible-verilog-kythe-extractor:%s\n' \
+					"${BASH_SOURCE[1]}" "${BASH_LINENO[0]}" "$_lines" >&2
+		fi
+	else
+		cat >&2
+	fi
+}
+
 begin_command_group 'Index Ibex source code'
 	cd ibex
 
 	file_args=$($SELF_DIR/ibex_extractor_args "$IBEX_CORE_NAME")
-	$VERIBLE_VERILOG_KYTHE_EXTRACTOR --print_kythe_facts json $file_args > "$OUT_DIR/entries"
+	$VERIBLE_VERILOG_KYTHE_EXTRACTOR \
+			--print_kythe_facts json \
+			$file_args \
+			> "$OUT_DIR/entries" \
+			2> >(log_indexer_warnings)
 
 	cd -
 end_command_group
