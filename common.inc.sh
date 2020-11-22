@@ -67,6 +67,16 @@ function end_command_group() {
 
 #─────────────────────────────────────────────────────────────────────────────
 
+declare -A DEPENDENCIES=(
+	# Value syntax: GIT_URL<whitespace>BRANCH
+	[verible]='https://github.com/google/verible.git master'
+	[ibex]='https://github.com/lowRISC/ibex.git master'
+)
+
+DEPS_REVISIONS_FILE="$SELF_DIR/deps-revisions.txt"
+
+#─────────────────────────────────────────────────────────────────────────────
+
 BUILD_DIR=$SELF_DIR/_build
 mkdir -p "$BUILD_DIR"
 OUT_DIR="$(readlink -f "$BUILD_DIR/output")"
@@ -75,4 +85,3 @@ ARTIFACTS_DIR="$(readlink -f "$OUT_DIR/artifacts")"
 mkdir -p "$ARTIFACTS_DIR"
 
 cd $BUILD_DIR
-

@@ -1,14 +1,53 @@
-name: Build and deploy
+name: Build, deploy, check for new commits
 
 on:
   workflow_dispatch:
+    inputs:
+      check-for-updates:
+        description: 'Check for new commits in tested repos before building [true|false] (default=false)'
+        required: false
+        default: false
   push:
     branches: [ master ]
   pull_request:
     branches: [ master ]
+  schedule:
+      - cron: '0 * * * *'
 
 jobs:
+  check-for-updates:
+    if: >-
+      ( github.event_name == 'schedule'
+        || github.event.inputs.check-for-updates)
+      && github.ref == 'refs/heads/master'
+    outputs:
+      updated: ${{ steps.check.outputs.revs-changed }}
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Check for new commits in tested repositories
+        id: check
+        run: |
+            ./update-deps.sh
+            if ! git diff -w --quiet; then
+                echo '::set-output name=revs-changed::true'
+            fi
+
+      - name: Update revisions
+        if: steps.check.outputs.revs-changed
+        run: |
+            git config --global user.name 'github-actions[bot]'
+            git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git commit -m 'Update revisions' -a
+            git push origin master
+
   build:
+    needs: check-for-updates
+    if: >-
+      ( always() && github.event_name != 'schedule' )
+      || needs.check-for-updates.outputs.updated
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout repository

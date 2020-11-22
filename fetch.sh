@@ -4,6 +4,7 @@
 SELF_DIR="$(dirname $(readlink -f ${BASH_SOURCE[0]}))"
 
 . $SELF_DIR/common.inc.sh
+. $SELF_DIR/deps.inc.sh
 
 #━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Get Kythe binaries
@@ -34,14 +35,19 @@ end_command_group
 # Get Verible sources
 
 begin_command_group 'Get Verible sources'
-	git clone --depth=1 https://github.com/google/verible.git
+	read url branch <<< "${DEPENDENCIES[verible]}"
+	rev="${DEPS_REVISIONS[verible]:-${branch}}"
+	git clone -b "$rev" "$url" verible
 end_command_group
 
 #─────────────────────────────────────────────────────────────────────────────
 # Get Ibex sources
 
 begin_command_group 'Get Ibex sources'
-	git clone --depth=1 https://github.com/lowRISC/ibex.git
+	read url branch <<< "${DEPENDENCIES[ibex]}"
+	rev="${DEPS_REVISIONS[ibex]:-${branch}}"
+	git clone -b "$rev" "$url" ibex
+
 	cd ibex
 	pip3 install --user -r python-requirements.txt
 	cd -
