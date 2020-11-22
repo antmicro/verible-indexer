@@ -44,10 +44,12 @@ VERIBLE_VERILOG_KYTHE_EXTRACTOR="$(readlink -f "./verible/bazel-bin/verilog/tool
 #─────────────────────────────────────────────────────────────────────────────
 # Scan and index Ibex sources
 
+IBEX_CORE_NAME='lowrisc:ibex:ibex_core_tracing'
+
 begin_command_group 'Index Ibex source code'
 	cd ibex
 
-	file_args=$($SELF_DIR/ibex_extractor_args ibex ./src_files.yml)
+	file_args=$($SELF_DIR/ibex_extractor_args "$IBEX_CORE_NAME")
 	$VERIBLE_VERILOG_KYTHE_EXTRACTOR --print_kythe_facts json $file_args > "$OUT_DIR/entries"
 
 	cd -

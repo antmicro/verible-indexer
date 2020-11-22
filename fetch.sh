@@ -42,5 +42,8 @@ end_command_group
 
 begin_command_group 'Get Ibex sources'
 	git clone --depth=1 https://github.com/lowRISC/ibex.git
+	cd ibex
+	pip3 install --user -r python-requirements.txt
+	cd -
 end_command_group
 
