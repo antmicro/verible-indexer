@@ -10,18 +10,17 @@ SELF_DIR="$(dirname $(readlink -f ${BASH_SOURCE[0]}))"
 
 declare -A new_deps_revisions=()
 
-dir="$PWD"
 for name in "${!DEPENDENCIES[@]}"; do
-	cd $dir
 	read url branch <<< "${DEPENDENCIES[$name]}"
-
-	git clone --depth=1 -b "$branch" "$url" "$name" || continue
-	cd "$name"
-	rev="$(git rev-parse "$branch")" || continue
+	read rev ref < <(git ls-remote -q "$url" "$branch") || :
+	if [[ -z "$rev" ]]; then
+		printf '::warning file=%s,line=%d::Failed to read revision for %s %s\n' \
+					"${BASH_SOURCE[0]}" "$LINENO" "$url" "$branch"
+		continue
+	fi
 	if [[ "${DEPS_REVISIONS[$name]:-}" != "$rev" ]]; then
 		new_deps_revisions["$name"]="$rev"
 	fi
-	cd -
 done
 
 if [[ "${#new_deps_revisions[@]}" -gt 0 ]]; then
