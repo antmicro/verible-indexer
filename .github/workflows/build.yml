@@ -22,6 +22,7 @@ jobs:
       && github.ref == 'refs/heads/master'
     outputs:
       updated: ${{ steps.check.outputs.revs-changed }}
+      revision: ${{ steps.update.outputs.revision }}
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout repository
@@ -36,12 +37,14 @@ jobs:
             fi
 
       - name: Update revisions
+        id: update
         if: steps.check.outputs.revs-changed
         run: |
             git config --global user.name 'github-actions[bot]'
             git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
             git commit -m 'Update revisions' -a
             git push origin master
+            echo '::set-output name=revision::'$(git rev-parse HEAD)
 
   build:
     needs: check-for-updates
@@ -53,7 +56,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
         with:
+          ref: ${{ needs.check-for-updates.outputs.revision || github.sha }}
           persist-credentials: false
+
+      - name: Update commit status (pending)
+        # Status is set automatically for all commits except those created with GH Action
+        if: needs.check-for-updates.outputs.updated
+        run: ./set-status ${{ secrets.GITHUB_TOKEN }} $(git rev-parse HEAD) pending
 
       - name: Install dependencies
         run: |
@@ -69,6 +78,10 @@ jobs:
 
       - name: Build
         run: ./build.sh
+
+      - name: Update commit status to build result
+        if: always() && needs.check-for-updates.outputs.updated
+        run: ./set-status ${{ secrets.GITHUB_TOKEN }} $(git rev-parse HEAD) ${{ job.status }}
 
       # Required to preserve file permissions
       - name: Create .tar archive with artifacts
