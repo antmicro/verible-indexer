@@ -24,6 +24,27 @@ for name in "${!DEPENDENCIES[@]}"; do
 done
 
 if [[ "${#new_deps_revisions[@]}" -gt 0 ]]; then
+	if [[ "${GITHUB_ACTIONS:-}" == 'true' ]]; then
+		# Get details about changes
+		commit_msg="$(mktemp -q)"
+		echo "Update revisions" > $commit_msg
+		echo "::set-output name=commit-msg::$commit_msg"
+
+		for name in "${!new_deps_revisions[@]}"; do
+			old_rev="${DEPS_REVISIONS[$name]:-}"
+			if [[ -z "${old_rev}" ]]; then
+				continue;
+			fi
+			new_rev="${new_deps_revisions[$name]}"
+			read url branch <<< "${DEPENDENCIES[$name]}"
+			git clone -n "$url" "$name" || continue
+			cd "$name"
+			echo -e "\n** $name: **\n" >> $commit_msg
+			git log --oneline --no-decorate "${old_rev}..${new_rev}" >> $commit_msg || :
+			cd -
+		done
+	fi
+
 	new_deps_revisions_file="$(mktemp -q)"
 	for name in "${!DEPENDENCIES[@]}"; do
 		printf '%s\t%s\n' \
