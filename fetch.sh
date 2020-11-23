@@ -36,8 +36,13 @@ end_command_group
 
 begin_command_group 'Get Verible sources'
 	read url branch <<< "${DEPENDENCIES[verible]}"
-	rev="${DEPS_REVISIONS[verible]:-${branch}}"
-	git clone -b "$rev" "$url" verible
+	git clone -n -b "$branch" "$url" verible
+	rev="${DEPS_REVISIONS[verible]:-}"
+	if [[ -n "$rev" ]]; then
+		cd verible
+		git checkout "$rev"
+		cd -
+	fi
 end_command_group
 
 #─────────────────────────────────────────────────────────────────────────────
@@ -45,10 +50,12 @@ end_command_group
 
 begin_command_group 'Get Ibex sources'
 	read url branch <<< "${DEPENDENCIES[ibex]}"
-	rev="${DEPS_REVISIONS[ibex]:-${branch}}"
-	git clone -b "$rev" "$url" ibex
-
+	git clone -n -b "$branch" "$url" ibex
+	rev="${DEPS_REVISIONS[ibex]:-}"
 	cd ibex
+	if [[ -n "$rev" ]]; then
+		git checkout "$rev"
+	fi
 	pip3 install --user -r python-requirements.txt
 	cd -
 end_command_group
