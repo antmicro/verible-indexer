@@ -44,7 +44,7 @@ VERIBLE_VERILOG_KYTHE_EXTRACTOR="$(readlink -f "./verible/bazel-bin/verilog/tool
 #─────────────────────────────────────────────────────────────────────────────
 # Scan and index Ibex sources
 
-IBEX_CORE_NAME='lowrisc:ibex:ibex_core_tracing'
+IBEX_CORE_NAME='lowrisc:ibex:ibex_top_tracing'
 
 function log_indexer_warnings() {
 	if [[ -n "${GITHUB_WORKFLOW:-}" ]]; then
