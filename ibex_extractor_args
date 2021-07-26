@@ -51,6 +51,8 @@ def main():
     args = parser.parse_args()
 
     filepaths, incdirs = get_core_deps(args.core)
+    if len(filepaths) == 0:
+        raise ValueError("File list is empty.")
 
     filelist = tempfile.NamedTemporaryFile(mode="w", delete=False, dir=os.getcwd(), prefix="file_list.", suffix=".txt")
     for fp in filepaths:
@@ -59,6 +61,7 @@ def main():
     incdirs = ",".join(incdirs)
 
     print(f"--include_dir_paths {shlex.quote(incdirs)} --file_list_path {shlex.quote(filelist.name)}")
+    filelist.close()
 
     return 0
 
