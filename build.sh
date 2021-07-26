@@ -14,22 +14,6 @@ KYTHE_SRC_DIR="$(readlink -f ./kythe-src/kythe*/)"
 BAZEL="bazel --output_user_root=$BAZEL_ROOT"
 
 #━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# Build static http_server
-
-begin_command_group 'Build Kythe http_server'
-	cd $KYTHE_SRC_DIR
-	$BAZEL build \
-			-c opt \
-			--@io_bazel_rules_go//go/config:static \
-			//kythe/go/serving/tools:http_server
-
-	mkdir -p $ARTIFACTS_DIR/bin
-	cp ./bazel-bin/kythe/go/serving/tools/http_server/http_server $ARTIFACTS_DIR/bin/
-
-	cd - > /dev/null
-end_command_group
-
-#─────────────────────────────────────────────────────────────────────────────
 # Build verible-verilog-kythe-extractor
 
 begin_command_group 'Build verible-verilog-kythe-extractor'
@@ -111,6 +95,22 @@ begin_command_group 'Create tables'
 		fatal_error "Generated tables are smaller than expected ($tables_size < $tables_min_expected_size)"
 	fi
 
+end_command_group
+
+#─────────────────────────────────────────────────────────────────────────────
+# Build static http_server
+
+begin_command_group 'Build Kythe http_server'
+	cd $KYTHE_SRC_DIR
+	$BAZEL build \
+			-c opt \
+			--@io_bazel_rules_go//go/config:static \
+			//kythe/go/serving/tools:http_server
+
+	mkdir -p $ARTIFACTS_DIR/bin
+	cp ./bazel-bin/kythe/go/serving/tools/http_server/http_server $ARTIFACTS_DIR/bin/
+
+	cd - > /dev/null
 end_command_group
 
 #─────────────────────────────────────────────────────────────────────────────
