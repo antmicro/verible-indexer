@@ -6,7 +6,7 @@
 
 declare -A DEPENDENCIES=(
 	# Value syntax: GIT_URL<whitespace>BRANCH
-	[verible]='https://github.com/google/verible.git master'
+	[verible]='https://github.com/chipsalliance/verible.git master'
 	[ibex]='https://github.com/lowRISC/ibex.git master'
 )
 
