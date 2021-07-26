@@ -26,7 +26,7 @@ begin_command_group 'Build Kythe http_server'
 	mkdir -p $ARTIFACTS_DIR/bin
 	cp ./bazel-bin/kythe/go/serving/tools/http_server/http_server $ARTIFACTS_DIR/bin/
 
-	cd -
+	cd - > /dev/null
 end_command_group
 
 #─────────────────────────────────────────────────────────────────────────────
@@ -36,7 +36,7 @@ begin_command_group 'Build verible-verilog-kythe-extractor'
 	cd verible
 	$BAZEL clean
 	$BAZEL build //verilog/tools/kythe:verible-verilog-kythe-extractor
-	cd -
+	cd - > /dev/null
 end_command_group
 
 VERIBLE_VERILOG_KYTHE_EXTRACTOR="$(readlink -f "./verible/bazel-bin/verilog/tools/kythe/verible-verilog-kythe-extractor")"
@@ -63,17 +63,27 @@ function log_indexer_warnings() {
 	fi
 }
 
+function get_file_size() { du -bs "$1" | cut -f1; }
+
 begin_command_group 'Index Ibex source code'
 	cd ibex
 
 	file_args=$($SELF_DIR/ibex_extractor_args "$IBEX_CORE_NAME")
-	$VERIBLE_VERILOG_KYTHE_EXTRACTOR \
+	log_cmd $VERIBLE_VERILOG_KYTHE_EXTRACTOR \
 			--print_kythe_facts json \
 			$file_args \
 			> "$OUT_DIR/entries" \
 			2> >(log_indexer_warnings)
+	log_cmd ls -l "$OUT_DIR/entries"
 
-	cd -
+	entries_size=$(get_file_size $OUT_DIR/entries)
+	# At the moment of writing this, correct 'entries' file size was about 23MiB. 1MB seems to be a good error threshold.
+	entries_min_expected_size=1000000
+	if (( ${entries_size:-0} < $entries_min_expected_size )); then
+		fatal_error "Generated 'entries' file is smaller than expected ($entries_size < $entries_min_expected_size)"
+	fi
+
+	cd - > /dev/null
 end_command_group
 
 #─────────────────────────────────────────────────────────────────────────────
@@ -85,12 +95,22 @@ begin_command_group 'Create graphstore'
 			< "$OUT_DIR/entries" \
 		| $KYTHE_DIR/tools/write_entries \
 			-graphstore "$OUT_DIR/graphstore"
+	log_cmd ls -l "$OUT_DIR/graphstore/"
 end_command_group
 
 begin_command_group 'Create tables'
 	$KYTHE_DIR/tools/write_tables \
 			-graphstore "$OUT_DIR/graphstore" \
 			-out "$ARTIFACTS_DIR/tables"
+	log_cmd ls -l "$ARTIFACTS_DIR/tables"
+
+	tables_size=$(get_file_size $ARTIFACTS_DIR/tables)
+	# At the moment of writing this, total size of generated table files was 29MiB. 2MB seems to be a good error threshold.
+	tables_min_expected_size=2000000
+	if (( ${tables_size:-0} < $tables_min_expected_size )); then
+		fatal_error "Generated tables are smaller than expected ($tables_size < $tables_min_expected_size)"
+	fi
+
 end_command_group
 
 #─────────────────────────────────────────────────────────────────────────────

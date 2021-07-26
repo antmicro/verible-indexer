@@ -7,6 +7,10 @@ on:
         description: 'Check for new commits in tested repos before building [true|false] (default=false)'
         required: false
         default: false
+      debug-artifacts:
+        description: 'Upload artifacts useful for debugging [true|false] (default=false)'
+        required: false
+        default: false
   push:
     branches: [ master ]
   pull_request:
@@ -93,6 +97,15 @@ jobs:
         with:
           name: server-files
           path: _build/output/server-files.tar
+
+      - name: Upload debug artifacts
+        if: always() && github.event.inputs.debug-artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: debug-files
+          path: |
+            _build/output/entries
+            _build/ibex/file_list.*.txt
 
   deploy:
     needs: build

@@ -56,7 +56,8 @@ begin_command_group 'Get Ibex sources'
 	if [[ -n "$rev" ]]; then
 		git checkout "$rev"
 	fi
-	pip3 install --user -r python-requirements.txt
+	pip3 install wheel
+	pip3 install -r python-requirements.txt
 	cd -
 end_command_group
 

@@ -8,27 +8,34 @@ set -e -u -o pipefail
 shopt -s nullglob
 shopt -s extglob
 
+# For logging in contexts with redirected output
+exec 3>&2
+
 script_error() {
 	local _file="$1"
 	local _lineno="$2"
 	local _msg="$3"
-	local _command="$4"
+	local _command="${4:-}"
 	local _cmdlines=()
 
-	while read line; do
-		_cmdlines+=("$line")
-	done <<< "$_command"
+	if [[ -n "$_command" ]]; then
+		while read line; do
+			_cmdlines+=("$line")
+		done <<< "$_command"
+	fi
 
 	if [[ -t 2 ]]; then
 		printf '\033[0;1m%s:%d: \033[31merror:\033[0m %s:\n' "$_file" "$_lineno" "$_msg"
 	else
 		printf '%s:%d: error: %s:\n' "$_file" "$_lineno" "$_msg"
 	fi
-	printf '\t%s\n' "${_cmdlines[@]}" >&2
-	printf '\n' >&2
+	if [[ -n "$_command" ]]; then
+		printf '\t%s\n' "${_cmdlines[@]}" >&3
+		printf '\n' >&3
+	fi
 
 	if [[ -n "${GITHUB_WORKFLOW:-}" ]]; then
-		printf '::error file=%s,line=%d::%s\n' "$_file" "$_lineno" "$_msg" >&2
+		printf '::error file=%s,line=%d::%s\n' "$_file" "$_lineno" "$_msg" >&3
 	fi
 }
 
@@ -50,6 +57,12 @@ script_error_handler() {
 }
 trap 'script_error_handler "$BASH_COMMAND" "$?"' ERR
 
+function fatal_error() {
+	script_error \
+		"${BASH_SOURCE[1]}" "${BASH_LINENO[0]}" \
+		"$*"
+	exit 1
+}
 
 function begin_command_group() {
 	if [[ -n "${GITHUB_WORKFLOW:-}" ]]; then
@@ -63,6 +76,13 @@ function end_command_group() {
 	if [[ -n "${GITHUB_WORKFLOW:-}" ]]; then
 		echo "::endgroup::"
 	fi
+}
+
+function log_cmd() {
+	printf '\x1b[32;1m#' >&3
+	printf ' %q' "$@" >&3
+	printf '\x1b[0m\n' >&3
+	"$@"
 }
 
 #─────────────────────────────────────────────────────────────────────────────
