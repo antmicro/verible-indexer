@@ -1,2 +1,2 @@
 verible	60829f353b2038896d547afcc4fd37a196c1d4df
-ibex	./update-deps.sh:15:
+ibex	e70add7228dc9b82c724078475e44e467808175d
