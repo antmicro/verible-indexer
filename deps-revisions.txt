@@ -1,2 +1,2 @@
 verible	dd5e91a4c632b47c8721784e23bf3acc6f46afbc
-ibex	9b68b5ef14aff5f49b6dd32878884158e6e2a5f8
+ibex	f71b23ddf8b93c63f0c42eb3cecf77aff177530d
