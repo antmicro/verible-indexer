@@ -12,10 +12,19 @@ declare -A new_deps_revisions=()
 
 for name in "${!DEPENDENCIES[@]}"; do
 	read url branch <<< "${DEPENDENCIES[$name]}"
-	read rev ref < <(git ls-remote -q "$url" "$branch") || :
-	if [[ -z "$rev" ]]; then
-		printf '::warning file=%s,line=%d::Failed to read revision for %s %s\n' \
-					"${BASH_SOURCE[0]}" "$LINENO" "$url" "$branch"
+	rc=0
+	ls_remote_answer="$(git ls-remote -q "$url" "$branch")" || rc=$?
+	if [[ $rc -ne 0 ]]; then
+		printf '::warning file=%s,line=%d::Failed to read revision for %s %s\n`%s` returned %d; output:\n%s\n' \
+					"${BASH_SOURCE[0]}" "$LINENO" "$url" "$branch" \
+					"$rc" "$ls_remote_answer"
+		continue
+	fi
+
+	read rev ref <<< "$ls_remote_answer"
+	if ! [[ "${rev:-}" =~ ^[a-fA-F0-9]{40}$ ]]; then
+		printf '::warning file=%s,line=%d::Got invalid-looking revision for %s %s\nrev = %s' \
+					"${BASH_SOURCE[0]}" "$LINENO" "$url" "$branch" "${rev@Q}"
 		continue
 	fi
 	if [[ "${DEPS_REVISIONS[$name]:-}" != "$rev" ]]; then
