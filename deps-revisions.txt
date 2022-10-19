@@ -1,2 +1,2 @@
-verible	abb57af48c389c06ad08bd91b5bef51269aaca0b
+verible	./update-deps.sh:15:
 ibex	ce536ae47677e952de02b7421e1b78efb5761ab2
