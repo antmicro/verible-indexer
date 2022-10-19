@@ -37,7 +37,7 @@ if [[ "${#new_deps_revisions[@]}" -gt 0 ]]; then
 		# Get details about changes
 		commit_msg="$(mktemp -q)"
 		echo "Update revisions" > $commit_msg
-		echo "::set-output name=commit-msg::$commit_msg"
+		echo "commit-msg=$commit_msg" >> $GITHUB_OUTPUT
 
 		for name in "${!new_deps_revisions[@]}"; do
 			old_rev="${DEPS_REVISIONS[$name]:-}"
