@@ -1,2 +1,2 @@
-verible	bb28b0b43da975db430fffdbbd3902b0cfb3040e
+verible	413c287312b1eefa237c3a30c58b4785df9f7280
 ibex	93c8e92c0ddbeed1239b04251cfb7d9ae68b5d1f
