@@ -8,6 +8,8 @@ declare -A DEPENDENCIES=(
 	# Value syntax: GIT_URL<whitespace>BRANCH
 	[verible]='https://github.com/chipsalliance/verible.git master'
 	[ibex]='https://github.com/lowRISC/ibex.git master'
+	[VeeR_EL2]='https://github.com/antmicro/Cores-VeeR-EL2.git main'
+	[caliptra_rtl]='https://github.com/chipsalliance/caliptra-rtl.git main'
 )
 
 DEPS_REVISIONS_FILE="$SELF_DIR/deps-revisions.txt"

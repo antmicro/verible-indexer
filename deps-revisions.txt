@@ -1,2 +1,4 @@
 verible	04e4ac8961b68d553b41ce8dc641bff2f2ce0a4f
 ibex	6e4352af10bfe8fc90d9fde2cbefc1899df8bab0
+caliptra_rtl	3e0d8ee319bafde45a734e4762efb1573196a92a
+VeeR_EL2	68cb13301740459643fd48f04e9579c53303eaaa

@@ -91,6 +91,8 @@ declare -A DEPENDENCIES=(
 	# Value syntax: GIT_URL<whitespace>BRANCH
 	[verible]='https://github.com/google/verible.git master'
 	[ibex]='https://github.com/lowRISC/ibex.git master'
+	[VeeR_EL2]='https://github.com/antmicro/Cores-VeeR-EL2.git main'
+	[caliptra_rtl]='https://github.com/chipsalliance/caliptra-rtl.git main'
 )
 
 DEPS_REVISIONS_FILE="$SELF_DIR/deps-revisions.txt"
@@ -101,7 +103,20 @@ BUILD_DIR=$SELF_DIR/_build
 mkdir -p "$BUILD_DIR"
 OUT_DIR="$(readlink -f "$BUILD_DIR/output")"
 mkdir -p "$OUT_DIR"
-ARTIFACTS_DIR="$(readlink -f "$OUT_DIR/artifacts")"
-mkdir -p "$ARTIFACTS_DIR"
+
+declare -a IP_CORES=()
+declare -A OUT_CORE_DIRS=()
+declare -A ARTIFACTS_DIRS=()
+
+for name in "${!DEPENDENCIES[@]}"; do
+	if [[ "$name" != "verible" ]]; then
+		core=$name
+		IP_CORES[${#IP_CORES[@]}]=$core
+		OUT_CORE_DIRS[$core]="$(readlink -f "$OUT_DIR/$core")"
+		mkdir -p "${OUT_CORE_DIRS[$core]}"
+		ARTIFACTS_DIRS[$core]="$(readlink -f "${OUT_CORE_DIRS[$core]}/artifacts")"
+		mkdir -p "${ARTIFACTS_DIRS[$core]}"
+	fi
+done
 
 cd $BUILD_DIR

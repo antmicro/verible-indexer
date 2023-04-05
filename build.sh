@@ -26,7 +26,7 @@ end_command_group
 VERIBLE_VERILOG_KYTHE_EXTRACTOR="$(readlink -f "./verible/bazel-bin/verilog/tools/kythe/verible-verilog-kythe-extractor")"
 
 #─────────────────────────────────────────────────────────────────────────────
-# Scan and index Ibex sources
+# Scan and index all IP sources
 
 IBEX_CORE_NAME='lowrisc:ibex:ibex_top_tracing'
 
@@ -49,74 +49,87 @@ function log_indexer_warnings() {
 
 function get_file_size() { du -bs "$1" | cut -f1; }
 
-begin_command_group 'Index Ibex source code'
-	cd ibex
+for IP_CORE in "${IP_CORES[@]}"; do
+	OUT_CORE_DIR=${OUT_CORE_DIRS[$IP_CORE]}
+	ARTIFACTS_DIR=${ARTIFACTS_DIRS[$IP_CORE]}
 
-	file_args=$($SELF_DIR/ibex_extractor_args "$IBEX_CORE_NAME")
-	log_cmd $VERIBLE_VERILOG_KYTHE_EXTRACTOR \
-			--print_kythe_facts json \
-			$file_args \
-			> "$OUT_DIR/entries" \
-			2> >(log_indexer_warnings)
-	log_cmd ls -l "$OUT_DIR/entries"
+	echo "IP_CORE="$IP_CORE
+	echo "OUT_CORE_DIR="$OUT_CORE_DIR
+	echo "ARTIFACTS_DIR="$ARTIFACTS_DIR
 
-	entries_size=$(get_file_size $OUT_DIR/entries)
-	# At the moment of writing this, correct 'entries' file size was about 23MiB. 1MB seems to be a good error threshold.
-	entries_min_expected_size=1000000
-	if (( ${entries_size:-0} < $entries_min_expected_size )); then
-		fatal_error "Generated 'entries' file is smaller than expected ($entries_size < $entries_min_expected_size)"
-	fi
+	begin_command_group 'Index '$IP_CORE' source code'
+		pushd $IP_CORE
+		if [[ "$IP_CORE" == "ibex" ]]; then
+			file_args=$($SELF_DIR/ibex_extractor_args "$IBEX_CORE_NAME")
+		else
+			file_args=$($SELF_DIR/index_filelist_gen.py --path_core $BUILD_DIR/$IP_CORE/)
+		fi
 
-	cd - > /dev/null
-end_command_group
+		log_cmd $VERIBLE_VERILOG_KYTHE_EXTRACTOR \
+				--print_kythe_facts json \
+				$file_args \
+				> "$OUT_CORE_DIR/entries" \
+				2> >(log_indexer_warnings)
+		log_cmd ls -l "$OUT_CORE_DIR/entries"
 
-#─────────────────────────────────────────────────────────────────────────────
-# Create tables
+		entries_size=$(get_file_size $OUT_CORE_DIR/entries)
+		# At the moment of writing this, correct 'entries' file size was about 23MiB. 1MB seems to be a good error threshold.
+		entries_min_expected_size=1000000
+		if (( ${entries_size:-0} < $entries_min_expected_size )); then
+			fatal_error "Generated 'entries' file is smaller than expected ($entries_size < $entries_min_expected_size)"
+		fi
 
-begin_command_group 'Create graphstore'
-	$KYTHE_DIR/tools/entrystream \
-			--read_format=json \
-			< "$OUT_DIR/entries" \
-		| $KYTHE_DIR/tools/write_entries \
-			-graphstore "$OUT_DIR/graphstore"
-	log_cmd ls -l "$OUT_DIR/graphstore/"
-end_command_group
+		popd > /dev/null
+	end_command_group
 
-begin_command_group 'Create tables'
-	$KYTHE_DIR/tools/write_tables \
-			-graphstore "$OUT_DIR/graphstore" \
-			-out "$ARTIFACTS_DIR/tables"
-	log_cmd ls -l "$ARTIFACTS_DIR/tables"
+	#─────────────────────────────────────────────────────────────────────────────
+	# Create tables
 
-	tables_size=$(get_file_size $ARTIFACTS_DIR/tables)
-	# At the moment of writing this, total size of generated table files was 29MiB. 2MB seems to be a good error threshold.
-	tables_min_expected_size=2000000
-	if (( ${tables_size:-0} < $tables_min_expected_size )); then
-		fatal_error "Generated tables are smaller than expected ($tables_size < $tables_min_expected_size)"
-	fi
+	begin_command_group 'Create graphstore'
+		$KYTHE_DIR/tools/entrystream \
+				--read_format=json \
+				< "$OUT_CORE_DIR/entries" \
+			| $KYTHE_DIR/tools/write_entries \
+				-graphstore "$OUT_CORE_DIR/graphstore"
+		log_cmd ls -l "$OUT_CORE_DIR/graphstore/"
+	end_command_group
 
-end_command_group
+	begin_command_group 'Create tables'
+		$KYTHE_DIR/tools/write_tables \
+				-graphstore "$OUT_CORE_DIR/graphstore" \
+				-out "$ARTIFACTS_DIR/tables"
+		log_cmd ls -l "$ARTIFACTS_DIR/tables"
 
-#─────────────────────────────────────────────────────────────────────────────
-# Build static http_server
+		tables_size=$(get_file_size $ARTIFACTS_DIR/tables)
+		# At the moment of writing this, total size of generated table files was 29MiB. 2MB seems to be a good error threshold.
+		tables_min_expected_size=2000000
+		if (( ${tables_size:-0} < $tables_min_expected_size )); then
+			fatal_error "Generated tables are smaller than expected ($tables_size < $tables_min_expected_size)"
+		fi
 
-begin_command_group 'Build Kythe http_server'
-	cd $KYTHE_SRC_DIR
-	$BAZEL build \
-			-c opt \
-			--@io_bazel_rules_go//go/config:static \
-			//kythe/go/serving/tools:http_server
+	end_command_group
 
-	mkdir -p $ARTIFACTS_DIR/bin
-	cp ./bazel-bin/kythe/go/serving/tools/http_server/http_server $ARTIFACTS_DIR/bin/
+	#─────────────────────────────────────────────────────────────────────────────
+	# Build static http_server
 
-	cd - > /dev/null
-end_command_group
+	begin_command_group 'Build Kythe http_server'
+		cd $KYTHE_SRC_DIR
+		# $BAZEL clean
+		$BAZEL build \
+				-c opt \
+				--@io_bazel_rules_go//go/config:static \
+				//kythe/go/serving/tools:http_server
 
-#─────────────────────────────────────────────────────────────────────────────
-# Copy static files to artifacts directory
+		mkdir -p $ARTIFACTS_DIR/bin
+		cp ./bazel-bin/kythe/go/serving/tools/http_server/http_server $ARTIFACTS_DIR/bin/
 
-begin_command_group 'Copy static files'
-	cp -R $STATIC_DIR/* $ARTIFACTS_DIR/
-end_command_group
+		cd - > /dev/null
+	end_command_group
 
+	#─────────────────────────────────────────────────────────────────────────────
+	# Copy static files to artifacts directory
+
+	begin_command_group 'Copy static files'
+		cp -R $STATIC_DIR/* $ARTIFACTS_DIR/
+	end_command_group
+done

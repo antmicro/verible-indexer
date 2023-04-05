@@ -46,18 +46,28 @@ begin_command_group 'Get Verible sources'
 end_command_group
 
 #─────────────────────────────────────────────────────────────────────────────
-# Get Ibex sources
+# Get IP Core sources
 
-begin_command_group 'Get Ibex sources'
-	read url branch <<< "${DEPENDENCIES[ibex]}"
-	git clone -n -b "$branch" "$url" ibex
-	rev="${DEPS_REVISIONS[ibex]:-}"
-	cd ibex
-	if [[ -n "$rev" ]]; then
-		git checkout "$rev"
-	fi
-	pip3 install wheel
-	pip3 install -r python-requirements.txt
-	cd -
-end_command_group
-
+for IP_CORE in "${IP_CORES[@]}"; do
+	begin_command_group 'Get '$IP_CORE' sources'
+		read url branch <<< "${DEPENDENCIES[$IP_CORE]}"
+		printf "::info CORE   = %q\n" $IP_CORE >&2
+		printf "::info URL    = %q\n" $url >&2
+		printf "::info BRANCH = %q\n" $branch >&2
+		git clone -n -b "$branch" "$url" $IP_CORE
+		rev="${DEPS_REVISIONS[$IP_CORE]:-}"
+		printf "::info REV    = %q\n" $rev >&2
+		pushd $IP_CORE > /dev/null
+		if [[ -n "$rev" ]]; then
+			git checkout "$rev"
+		fi
+		if [[ "$IP_CORE" == "ibex" ]]; then
+			pip3 install wheel
+			pip3 install -r python-requirements.txt
+		elif [[ "$IP_CORE" == "VeeR_EL2" ]]; then
+			export RV_ROOT=$(pwd)
+			configs/veer.config
+		fi
+		popd > /dev/null
+	end_command_group
+done
