@@ -37,7 +37,7 @@ jobs:
         run: |
             ./update-deps.sh
             if ! git diff -w --quiet; then
-                echo '::set-output name=revs-changed::true'
+                echo "revs-changed=true" >> $GITHUB_OUTPUT
             fi
 
       - name: Update revisions
@@ -48,7 +48,7 @@ jobs:
             git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
             git commit -a -F ${{ steps.check.outputs.commit-msg }}
             git push origin master
-            echo '::set-output name=revision::'$(git rev-parse HEAD)
+            echo "revision=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
 
   build:
     needs: check-for-updates
