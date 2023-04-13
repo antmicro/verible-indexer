@@ -75,7 +75,8 @@ jobs:
           sudo mv bazel.gpg /etc/apt/trusted.gpg.d/
           echo "deb [arch=amd64] https://storage.googleapis.com/bazel-apt stable jdk1.8" | sudo tee /etc/apt/sources.list.d/bazel.list
           sudo apt update
-          sudo apt install bazel-3.4.1 asciidoc graphviz source-highlight
+          sudo apt install bazel-3.4.1 asciidoc graphviz source-highlight cpanminus
+          sudo cpanm Bit::Vector JSON
 
       - name: Fetch
         run: ./fetch.sh
@@ -88,15 +89,23 @@ jobs:
         run: ./set-status ${{ secrets.GITHUB_TOKEN }} $(git rev-parse HEAD) ${{ job.status }}
 
       # Required to preserve file permissions
-      - name: Create .tar archive with artifacts
-        run: tar -cf ../server-files.tar *
-        working-directory: _build/output/artifacts
+      - name: Create .tar archive with ibex artifacts
+        run: tar -cf ../../server-files-ibex.tar *
+        working-directory: _build/output/ibex/artifacts
+
+      - name: Create .tar archive with VeeR artifacts
+        run: tar -cf ../../server-files-veer.tar *
+        working-directory: _build/output/VeeR_EL2/artifacts
+
+      - name: Create .tar archive with Caliptra artifacts
+        run: tar -cf ../../server-files-caliptra.tar *
+        working-directory: _build/output/caliptra_rtl/artifacts
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
         with:
           name: server-files
-          path: _build/output/server-files.tar
+          path: _build/output/server-files-*.tar
 
       - name: Upload debug artifacts
         if: always() && github.event.inputs.debug-artifacts
@@ -120,8 +129,10 @@ jobs:
 
       - name: Extract artifacts .tar archive
         run: |
-          mkdir artifacts
-          tar -xf server-files.tar -C artifacts
+          mkdir artifacts-ibex artifacts-veer artifacts-caliptra
+          tar -xf server-files-ibex.tar -C artifacts-ibex
+          tar -xf server-files-veer.tar -C artifacts-veer
+          tar -xf server-files-caliptra.tar -C artifacts-caliptra
 
       - name: Setup SSH
         run: |
@@ -131,7 +142,14 @@ jobs:
         env:
           ssh_key: ${{ secrets.SSH_KEY }}
 
-      - name: Deploy
+      - name: Deploy ibex
         run: rsync -avrz --delete -e "ssh -o StrictHostKeyChecking=no" * "indexer@34.123.203.237:~/indexer"
-        working-directory: artifacts
+        working-directory: artifacts-ibex
 
+      - name: Deploy VeeR
+        run: rsync -avrz --delete -e "ssh -o StrictHostKeyChecking=no" * "indexer@34.27.121.3:~/indexer"
+        working-directory: artifacts-veer
+
+      - name: Deploy Caliptra
+        run: rsync -avrz --delete -e "ssh -o StrictHostKeyChecking=no" * "indexer@34.31.62.228:~/indexer"
+        working-directory: artifacts-caliptra
