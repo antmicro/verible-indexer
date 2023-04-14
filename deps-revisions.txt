@@ -1,2 +1,2 @@
-verible	326a64c2ce7852840cbbe04332c59956a8a0ab0f
-ibex	e58a9ff7927887ba9d9f1a14aea6f2e97183d8ef
+verible	04e4ac8961b68d553b41ce8dc641bff2f2ce0a4f
+ibex	6e4352af10bfe8fc90d9fde2cbefc1899df8bab0
