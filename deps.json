@@ -1,0 +1,22 @@
+{
+    "cores": [
+        {
+            "repository_name": "ibex",
+            "repository_url": "https://www.github.com/antmicro/ibex",
+            "repository_branch": "master",
+            "repository_revision": "9e3989f20505e406fc9656424ec7d076ba8b3df4"
+        },
+        {
+            "repository_name": "Cores-VeeR-EL2",
+            "repository_url": "https://github.com/antmicro/Cores-VeeR-EL2",
+            "repository_branch": "main",
+            "repository_revision": "810fffd0c26c7cd12d47375a511e9dbc48b05483"
+        },
+        {
+            "repository_name": "caliptra-rtl",
+            "repository_url": "https://github.com/chipsalliance/caliptra-rtl",
+            "repository_branch": "main",
+            "repository_revision": "3e0d8ee319bafde45a734e4762efb1573196a92a"
+        }
+    ]
+}
