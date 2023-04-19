@@ -2,36 +2,43 @@
 
 Copyright (c) 2020-2023 [Antmicro](https://www.antmicro.com)
 
-This project enables selection of multiple repositories to create a set of indexed webpages. Cores meant for indexing are selected in the "DEPENDENCIES" array in shell include scripts: deps.inc.sh, common.inc.sh
+This project enables selection of multiple repositories to create a set of indexed webpages. The indexing is performed by the [Verible Indexing Action](https://github.com/antmicro/verible-indexing-action). Cores meant for indexing are selected in the [deps.json file](https://github.com/antmicro/verible-indexer/blob/mczyz/gh-action/deps.json) and can be easily expanded by adding another entry in the JSON array,e.g.:
+
+	{
+		"repository_name": "repo-you-need",
+		"repository_url": "https://github.com/path/to/repo-you-need",
+		"repository_branch": "valid-name-of-branch",
+		"repository_revision": "valid-sha-of-revision"
+	}
+
+The workflow checks if newer revision are available for any of the defined repositories and, if needed, performs indexing. The outputs are captured in docker images, where each repository is given a unique image with an http_server installed. Repository name variable is used to tag images, e.g. ghcr.io/antmicro/verible-indexer:repo-you-need.
 
 ## Supported Cores
 
-Currently indexed cores are:
+Docker hosting:
+* [Ibex](https://github.com/lowRISC/ibex) - [link tbd]()
+* [VeeR-EL2](https://github.com/antmicro/Cores-VeeR-EL2) - [link tbd]()
+* [Caliptra](https://github.com/chipsalliance/caliptra-rtl) - [link tbd]()
+
+Legacy hosting:
 
 * [Ibex](https://github.com/lowRISC/ibex) - [link](http://34.123.203.237)
 * [VeeR-EL2](https://github.com/antmicro/Cores-VeeR-EL2) - [link](http://34.27.121.3)
 * [Caliptra](https://github.com/chipsalliance/caliptra-rtl) - [link](http://34.31.62.228)
 
-## Adding new cores
+## Docker Images
 
-In order to add/remove a core from the build:
- * add/remove an entry in the DEPENDENCIES array (common.inc.sh and deps.inc.sh):
- <pre>
- declare -A DEPENDENCIES=(
-	# Value syntax: GIT_URL<whitespace>BRANCH
-	[verible]='https://github.com/chipsalliance/verible.git master'
-    [my_new_repo]='https://github.com/my_new_ip_core/ip_core.git main'
-)
- </pre>
+In order to test the docker image locally, pull and run the image (update the path to the image with any of the [tagged images](https://github.com/antmicro/verible-indexer/pkgs/container/verible-indexer)):
 
- * Run script, which updates the deps-revisions.txt file
- <pre>
- ./update-deps.sh
- </pre>
+	docker pull ghcr.io/antmicro/verible-indexer:latest
+	sudo docker run ghcr.io/antmicro/verible-indexer:latest
 
- * Check if desired core is listed in the deps-revisions.txt (a manual fix may be required in some cases)
+It may be useful to run the image with a shell entrypoint for debugging purposes, which can be achieved with the following command:
 
- Example of expected contents:
- <pre>
- ibex	93c8e92c0ddbeed1239b04251cfb7d9ae68b5d1f
- </pre>
+	sudo docker run -ti --entrypoint /bin/bash ghcr.io/antmicro/verible-indexer:latest
+
+Find IP of the docker image
+
+	docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' <docker_id>
+
+In a web browser, connect to IP on port 80.
