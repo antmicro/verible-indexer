@@ -22,8 +22,8 @@ RUN echo 'Get Kythe' \
    && tar -xzf kythe.tar.gz --strip-components=1 -C kythe-bin
 
 #━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# Expose port 80 for http
-EXPOSE 80
+# Expose port 8080 for http
+EXPOSE 8080
 ENV KYTHE_HTTP_SERVER=/kythe-bin/tools/http_server
 
 #━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -35,4 +35,4 @@ COPY artifacts /home/indexer/indexer/
 # Define the entrypoint
 
 COPY entrypoint.sh /home/indexer/indexer/entrypoint.sh
-ENTRYPOINT ["/home/indexer/indexer/entrypoint.sh"]
+ENTRYPOINT ["/home/indexer/indexer/entrypoint.sh", "0.0.0.0:8080"]

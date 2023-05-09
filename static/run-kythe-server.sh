@@ -12,7 +12,7 @@ SERVER_BIN=$SELF_DIR/bin/http_server
 TABLES_DIR=$SELF_DIR/tables
 PUBLIC_DIR=$SELF_DIR/web-ui
 
-LISTEN="${1:-0.0.0.0:80}"
+LISTEN="${1:-0.0.0.0:8080}"
 
 $SERVER_BIN \
 	--serving_table "$TABLES_DIR" \
