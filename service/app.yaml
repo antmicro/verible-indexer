@@ -1,0 +1,11 @@
+runtime: custom
+env: flex
+
+readiness_check:
+  path: "/"
+
+liveness_check:
+  path: "/"
+
+manual_scaling:
+  instances: 1
