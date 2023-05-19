@@ -15,16 +15,11 @@ The workflow checks if newer revision are available for any of the defined repos
 
 ## Supported Cores
 
-Docker hosting:
-* [Ibex](https://github.com/lowRISC/ibex) - [link tbd]()
-* [VeeR-EL2](https://github.com/antmicro/Cores-VeeR-EL2) - [link tbd]()
-* [Caliptra](https://github.com/chipsalliance/caliptra-rtl) - [link tbd]()
+Links to App Engine:
 
-Legacy hosting:
-
-* [Ibex](https://github.com/lowRISC/ibex) - [link](http://34.123.203.237)
-* [VeeR-EL2](https://github.com/antmicro/Cores-VeeR-EL2) - [link](http://34.27.121.3)
-* [Caliptra](https://github.com/chipsalliance/caliptra-rtl) - [link](http://34.31.62.228)
+* [Ibex](https://github.com/lowRISC/ibex) - [link](https://ibex-dot-catx-ext-github-custom-runners.uc.r.appspot.com)
+* [VeeR-EL2](https://github.com/antmicro/Cores-VeeR-EL2) - [link](https://cores-veer-el2-dot-catx-ext-github-custom-runners.uc.r.appspot.com)
+* [Caliptra](https://github.com/chipsalliance/caliptra-rtl) - [link](https://caliptra-rtl-dot-catx-ext-github-custom-runners.uc.r.appspot.com)
 
 ## Docker Images
 
@@ -41,4 +36,4 @@ Find IP of the docker image
 
 	docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' <docker_id>
 
-In a web browser, connect to IP on port 80.
+In a web browser, connect to IP on port 8080.
