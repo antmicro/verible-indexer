@@ -245,3 +245,42 @@ jobs:
 
       - name: Deploy App Engine's service
         run: gcloud app deploy service/app.yaml --quiet --project $APP_ENGINE_PROJECT --image-url $GCR/$IMAGE_NAME:$REPOSITORY_NAME --version v1 --promote
+
+
+  gcr-cleaner:
+    needs: [ deploy-to-gcp ]
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: ubuntu-latest
+    env:
+      GCR: ${{ secrets.GCR }}
+      IMAGE_NAME: ${{ secrets.IMAGE_NAME }}
+      KEEP_IMAGES: 10
+
+    steps:
+      - name: Checkout this repository
+        uses: actions/checkout@v3
+
+      - id: gcp-auth
+        name: GCP Authentcation
+        uses: google-github-actions/auth@v1
+        with:
+          service_account: ${{ secrets.GCP_SA }}
+          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+          cleanup_credentials: true
+          create_credentials_file: true
+          export_environment_variables: false
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v1
+        env:
+          GOOGLE_GHA_CREDS_PATH: ${{ steps.gcp-auth.outputs.credentials_file_path }}
+        with:
+          project_id: ${{ secrets.APP_ENGINE_PROJECT }}
+          version: '>= 363.0.0'
+
+      - name: Remove old images from GCR
+        run: |
+          TAGGED_IMAGES=$(gcloud container images list-tags $GCR/$IMAGE_NAME --filter="tags:*" --format="get(digest)" | wc -l)
+          gcloud container images list-tags $GCR/$IMAGE_NAME --filter="NOT tags:*" --format="get(digest)" --sort-by="~timestamp" | tail -n +$(($KEEP_IMAGES * $TAGGED_IMAGES + 1)) | xargs -I _ gcloud container images delete --quiet $GCR/$IMAGE_NAME@_
