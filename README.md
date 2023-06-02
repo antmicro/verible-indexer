@@ -17,9 +17,9 @@ The workflow checks if newer revision are available for any of the defined repos
 
 Links to App Engine:
 
-* [Ibex](https://github.com/lowRISC/ibex) - [link](https://ibex-dot-catx-ext-github-custom-runners.uc.r.appspot.com)
-* [VeeR-EL2](https://github.com/antmicro/Cores-VeeR-EL2) - [link](https://cores-veer-el2-dot-catx-ext-github-custom-runners.uc.r.appspot.com)
-* [Caliptra](https://github.com/chipsalliance/caliptra-rtl) - [link](https://caliptra-rtl-dot-catx-ext-github-custom-runners.uc.r.appspot.com)
+* [Ibex](https://github.com/lowRISC/ibex) - [link](https://ibex-dot-catx-ext-chips-alliance.uc.r.appspot.com)
+* [VeeR-EL2](https://github.com/antmicro/Cores-VeeR-EL2) - [link](https://cores-veer-el2-dot-catx-ext-chips-alliance.uc.r.appspot.com)
+* [Caliptra](https://github.com/chipsalliance/caliptra-rtl) - [link](https://caliptra-rtl-dot-catx-ext-chips-alliance.uc.r.appspot.com)
 
 ## Docker Images
 
