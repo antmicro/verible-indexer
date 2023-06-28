@@ -14,20 +14,165 @@
  * limitations under the License.
  */
 
+ @import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
+
+ @font-face {
+  font-family: 'Cascadia Mono';
+  src: url(../font/CascadiaMono.ttf);
+ }
+
 /* Fullscreen display elements */
 html, body, #kythe, #container, #container div {
   height: 100%;
   margin-bottom: 0px;
+  background-color: #252526;
+  color: #8C8C8C;
+}
+
+#container {
+  padding-bottom: 20px;
+}
+
+body {
+  overflow: hidden;
+}
+
+#src-container {
+  overflow: auto;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+::-webkit-scrollbar {
+  width: 15px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #6F6F6F; 
+}
+
+::-webkit-scrollbar-track {
+  background: #292929; 
+}
+
+a {
+  color: #6F6F6F;
+  text-decoration: underline;
+  font-size: 14px;
+}
+
+a:focus {
+  color: #3C3C3C;
+}
+
+a:hover {
+  background-color: #3C3C3C !important;
+  color: #8C8C8C;
+}
+
+li {
+  font-size: 14px;
+}
+
+a:has(span)::before {
+  content: url(/assets/vector.svg);
+  margin-right: 10px;
+}
+
+pre {
+  margin: 0;
+  padding: 5px;
+  background-color: #1E1E1E;
+  border: 1px solid #3C3C3C;
+  font-size: 14px;
+  font-family: 'Cascadia Mono', monospace;
+}
+
+.nav {
+  overflow: auto;
+}
+
+.nav>li>a[title$=".sv"] {
+  color: #00D0C9;
+}
+
+.nav>li>a[title$=".svh"] {
+  color: #00D0C9;
+}
+
+.nav>li>a[title$=".svi"] {
+  color: #00D0C9;
+}
+
+.nav>li>a[title$=".vi"] {
+  color: #00D0C9;
+}
+
+.nav>li>a:focus {
+  background-color: #8C8C8C;
+}
+
+#filetree-container {
+  font-family: 'Roboto', sans-serif;
+}
+
+#src {
+  font-family: 'Cascadia Mono', monospace !important;
+}
+
+#src a {
+  color: #00D0C9;
+}
+
+span {
+  color: #CCCCCC;
+}
+
+code {
+  font-size: 14px;
+}
+
+img {
+  height: 35px;
+}
+
+.bar {
+  padding: 22px;
+  display: flex;
+  justify-content: center;
+  position: inherit;
+}
+
+.bar > div {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  gap: 100px;
+}
+
+.bar > a {
+  align-self: center;
+  z-index: 2;
+  font-size: 20px;
+}
+
+.bar  a:hover {
+  background-color: unset !important;
+}
+
+.verible-indexer-link {
+  color: #CCCCCC;
+  text-decoration: none;
 }
 
 #fringe {
   float: left;
   border: 0px;
-  background: none;
+  background-color: #1E1E1E;
   width: 35px; /* Enough space for 4-digit line numbers */
   word-wrap: normal;
-  padding-left: 0px;
-  padding-right: 4px;
   text-align: right;
 }
 
@@ -53,11 +198,7 @@ html, body, #kythe, #container, #container div {
 #filetree-container a {
   padding: 3px;
   margin: -1px;
-}
-
-.border {
-  border: 1px solid lightgray;
-  border-radius: 4px;
+  line-height: 1.75;
 }
 
 /* TODO(schroederc): don't overlay on top of source text */
@@ -68,12 +209,37 @@ html, body, #kythe, #container, #container div {
   margin: 0px;
   bottom: 0px;
   overflow: auto;
-  background: white;
+  background: red;
   height: 33% !important;
+  border-top: 1px solid #3C3C3C;
+  padding: 20px 90px;
 }
 
 #xrefs div {
   height: auto;
+}
+
+.pagination>li>a {
+  width: 30px;
+  height: 30px;
+  background-color:  rgba(40, 43, 48, 0.10) !important;
+  border: 1px solid #616163 !important;
+}
+
+.pagination>li>a:hover {
+  color: #DFE1F1;
+}
+
+.pagination-sm>li>a {
+  color: #DFE1F1;
+}
+
+.glyphicon-remove::before {
+  content: url(/assets/cross.svg) !important;
+}
+
+.btn-danger:hover {
+  background-color: transparent;
 }
 
 .snippet {
@@ -86,6 +252,10 @@ html, body, #kythe, #container, #container div {
 
 .snippet span {
   display: inline-flex;
+}
+
+.snippet > a {
+  color: #00D0C9;
 }
 
 .spinner {
