@@ -2,17 +2,6 @@ name: index
 
 on:
   workflow_dispatch:
-    inputs:
-      check-for-updates:
-        description: 'Check for new commits in tested repos before building [true|false] (default=false)'
-        type: boolean
-        required: false
-        default: false
-      debug-artifacts:
-        description: 'Upload artifacts useful for debugging [true|false] (default=false)'
-        type: boolean
-        required: false
-        default: false
   push:
     branches: [ master ]
   pull_request:
@@ -29,6 +18,7 @@ jobs:
     if: >-
       ( github.event_name == 'schedule' ||
         github.event_name == 'push' ||
+        github.event_name == 'workflow_dispatch' ||
         github.event.inputs.check-for-updates )
     steps:
       - name: Checkout this repository
@@ -42,11 +32,21 @@ jobs:
         #     If set to true, then there is at least one update required
         #   COMMIT_MSG_FILE : string
         #     Name of file containing the commit message used by bot
+        if: github.event_name != 'workflow_dispatch'
         run: |
           apt -y update && apt -y install python3 python3-pip
           pip install -r requirements.txt
           python3 update-deps.py
           echo "UPDATE_DEPS=$(cat update-deps.json)" >> $GITHUB_ENV
+
+      - name: (Workflow dispatch) Configure build commit
+        id: workflow_dispatch_update
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          echo "DO_UPDATE=true" | tee -a "$GITHUB_ENV"
+          echo "UPDATE_DEPS=$(cat deps.json)" | tee -a "$GITHUB_ENV"
+          echo "Workflow dispatch update" > commit_message.txt
+          echo "COMMIT_MSG_FILE=commit_message.txt" | tee -a "$GITHUB_ENV"
 
       - name: Print environment variables
         id: print
@@ -57,11 +57,11 @@ jobs:
 
       - name: Update revisions
         id: update
-        if: ${{ env.DO_UPDATE != 'False' }}
+        if: ${{ env.DO_UPDATE != 'False' || github.event_name == 'workflow_dispatch' }}
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -a -F ${{ env.COMMIT_MSG_FILE }}
+          git commit -a --allow-empty -F ${{ env.COMMIT_MSG_FILE }}
           git push origin master
 
 
