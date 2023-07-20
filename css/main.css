@@ -22,6 +22,7 @@ a {
 
 a.big {
   font-size: 1.25rem;
+  padding-right: 50px;
 }
 
 span.heading {
@@ -29,12 +30,13 @@ span.heading {
 }
 
 nav {
+  position: fixed;
+  width: 100%;
   height: 80px;
   background-color: white;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 100px;
 }
 
 nav > .logo-wrapper {
@@ -61,7 +63,7 @@ nav > .logo-wrapper {
 }
 
 .title-wrapper {
-  padding: 115px 0;
+  padding: 145px 0;
   text-align: center;
 }
 
@@ -74,12 +76,10 @@ nav > .logo-wrapper {
 }
 
 .card-wrapper {
-  /* display: flex;
-  gap: 85px; */
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 4rem;
+  gap: 4.5rem;
 }
 
 .card {
@@ -108,11 +108,6 @@ nav > .logo-wrapper {
 }
 
 @media (max-width: 1000px) {
-  body,
-  html {
-    height: unset;
-  }
-
   nav {
     padding: 0 5%;
   }
