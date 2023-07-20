@@ -105,6 +105,7 @@ nav > .logo-wrapper {
   display: flex;
   gap: 10px;
   align-items: center;
+  border-top: 1px solid #5f6368;
 }
 
 @media (max-width: 1000px) {
