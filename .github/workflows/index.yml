@@ -98,7 +98,7 @@ jobs:
           repository_branch: ${{ env.REPOSITORY_BRANCH }}
           repository_revision: ${{ env.REPOSITORY_REV }}
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         id: download-artifact
         with:
           name: server-files
