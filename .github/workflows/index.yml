@@ -45,15 +45,6 @@ jobs:
         run: |
           echo "DO_UPDATE=true" | tee -a "$GITHUB_ENV"
           echo "UPDATE_DEPS=$(cat deps.json)" | tee -a "$GITHUB_ENV"
-          echo "Workflow dispatch update" > commit_message.txt
-          echo "COMMIT_MSG_FILE=commit_message.txt" | tee -a "$GITHUB_ENV"
-
-      - name: Print environment variables
-        id: print
-        run: |
-          echo "DO_UPDATE="${{ env.DO_UPDATE }}
-          echo "UPDATE_DEPS="${{ env.UPDATE_DEPS }}
-          echo "COMMIT_MSG_FILE="${{ env.COMMIT_MSG_FILE }}
 
 
   index-cores:
@@ -288,8 +279,9 @@ jobs:
       - name: Set environment variables
         id: print
         run: |
+          echo "Workflow dispatch update" > commit_message.txt
+          echo "COMMIT_MSG_FILE=commit_message.txt" | tee -a "$GITHUB_ENV"
           echo "UPDATE_DEPS="${{ needs.update-revisions.outputs.update_deps }} | tee -a "$GITHUB_ENV"
-          echo "COMMIT_MSG_FILE="${{ needs.update-revisions.outputs.commit_msg_file }} | tee -a "$GITHUB_ENV"
 
       - name: Write update to file
         run: |
