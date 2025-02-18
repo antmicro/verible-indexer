@@ -55,15 +55,6 @@ jobs:
           echo "UPDATE_DEPS="${{ env.UPDATE_DEPS }}
           echo "COMMIT_MSG_FILE="${{ env.COMMIT_MSG_FILE }}
 
-      - name: Update revisions
-        id: update
-        if: ${{ env.DO_UPDATE != 'False' || github.event_name == 'workflow_dispatch' }}
-        run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -a --allow-empty -F ${{ env.COMMIT_MSG_FILE }}
-          git push origin master
-
 
   index-cores:
     needs: update-revisions
@@ -284,3 +275,32 @@ jobs:
         run: |
           TAGGED_IMAGES=$(gcloud container images list-tags $GCR/$IMAGE_NAME --filter="tags:*" --format="get(digest)" | wc -l)
           gcloud container images list-tags $GCR/$IMAGE_NAME --filter="NOT tags:*" --format="get(digest)" --sort-by="~timestamp" | tail -n +$(($KEEP_IMAGES * $TAGGED_IMAGES + 1)) | xargs -I _ gcloud container images delete --quiet $GCR/$IMAGE_NAME@_
+
+
+  deploy-repository-update:
+    runs-on: ubuntu-latest
+    needs: [ update-revisions ]
+    steps:
+      - name: Checkout this repository
+        id: checkout
+        uses: actions/checkout@v3
+
+      - name: Print environment variables
+        id: print
+        run: |
+          echo "DO_UPDATE="${{ env.DO_UPDATE }}
+          echo "UPDATE_DEPS="${{ env.UPDATE_DEPS }}
+          echo "COMMIT_MSG_FILE="${{ env.COMMIT_MSG_FILE }}
+
+      - name: Write update to file
+        run: |
+          echo "${{ needs.update-revisions.outputs.update_deps }}" > deps.json
+
+      - name: Update revisions
+        id: update
+        if: always() && ${{ needs.update-revisions.outputs.do_update }}
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -a --allow-empty -F ${{ env.COMMIT_MSG_FILE }}
+          git push origin master
