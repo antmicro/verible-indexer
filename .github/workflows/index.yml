@@ -92,7 +92,7 @@ jobs:
       - uses: actions/download-artifact@v4
         id: download-artifact
         with:
-          name: server-files
+          name: server-files-${{ env.REPOSITORY_NAME }}
 
       - name: Extract artifacts .tar archive
         run: |
