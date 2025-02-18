@@ -82,7 +82,7 @@ jobs:
         run: ./set-status ${{ secrets.GITHUB_TOKEN }} $(git rev-parse HEAD) pending
 
       - name: index-core
-        uses: antmicro/verible-indexing-action@v1.1.1
+        uses: antmicro/verible-indexing-action@8e2a676c0f777af97ecf3ca39c7f2d65b1cc71b0
         with:
           repository_name: ${{ env.REPOSITORY_NAME }}
           repository_url: ${{ env.REPOSITORY_URL }}
