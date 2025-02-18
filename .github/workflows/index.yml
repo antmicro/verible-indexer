@@ -285,16 +285,15 @@ jobs:
         id: checkout
         uses: actions/checkout@v3
 
-      - name: Print environment variables
+      - name: Set environment variables
         id: print
         run: |
-          echo "DO_UPDATE="${{ env.DO_UPDATE }}
-          echo "UPDATE_DEPS="${{ env.UPDATE_DEPS }}
-          echo "COMMIT_MSG_FILE="${{ env.COMMIT_MSG_FILE }}
+          echo "UPDATE_DEPS="${{ needs.update-revisions.outputs.update_deps }} | tee -a "$GITHUB_ENV"
+          echo "COMMIT_MSG_FILE="${{ needs.update-revisions.outputs.commit_msg_file }} | tee -a "$GITHUB_ENV"
 
       - name: Write update to file
         run: |
-          echo "${{ needs.update-revisions.outputs.update_deps }}" > deps.json
+          echo "${{ env.UPDATE_DEPS }}" > deps.json
 
       - name: Update revisions
         id: update
